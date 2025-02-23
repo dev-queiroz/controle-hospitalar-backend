@@ -15,7 +15,7 @@ export const initWebSocket = (socketIo: Server) => {
     });
 };
 
-export const createProntuario = async (req: Request, res: Response) => {
+export const HandlerCreateProntuario = async (req: Request, res: Response) => {
     try {
         const { patient_id, history } = req.body;
 
@@ -40,7 +40,7 @@ export const createProntuario = async (req: Request, res: Response) => {
     }
 };
 
-export const getProntuario = async (req: Request, res: Response) => {
+export const HandlerGetProntuario = async (req: Request, res: Response) => {
     try {
         const { patientId } = req.params;
 
@@ -59,7 +59,7 @@ export const getProntuario = async (req: Request, res: Response) => {
     }
 };
 
-export const listProntuarios = async (req: Request, res: Response) => {
+export const HandlerListProntuarios = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
@@ -93,7 +93,7 @@ export const listProntuarios = async (req: Request, res: Response) => {
     }
 };
 
-export const startRealtime = async (req: Request, res: Response) => {
+export const HandlerStartRealtime = async (req: Request, res: Response) => {
     try {
         const patientId = req.query.patientId as string | undefined;
 
