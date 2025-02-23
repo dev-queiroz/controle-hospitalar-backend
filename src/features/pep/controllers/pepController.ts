@@ -13,7 +13,7 @@ export const initWebSocket = (socketIo: Server) => {
     });
 };
 
-export const createProntuario = async (req: Request, res: Response) => {
+export const HandlerCreateProntuario = async (req: Request, res: Response) => {
     try {
         const { patient_id, history } = req.body;
         if (!patient_id || !history) throw new Error('patient_id e history são obrigatórios');
@@ -25,7 +25,7 @@ export const createProntuario = async (req: Request, res: Response) => {
     }
 };
 
-export const getProntuario = async (req: Request, res: Response) => {
+export const HandlerGetProntuario = async (req: Request, res: Response) => {
     try {
         const prontuario = await pepService.getProntuario(req.params.patientId);
         if (!prontuario) throw new Error('Prontuário não encontrado');
@@ -35,7 +35,7 @@ export const getProntuario = async (req: Request, res: Response) => {
     }
 };
 
-export const listProntuarios = async (req: Request, res: Response) => {
+export const HandlerListProntuarios = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
@@ -55,7 +55,7 @@ export const listProntuarios = async (req: Request, res: Response) => {
     }
 };
 
-export const startRealtime = async (req: Request, res: Response) => {
+export const HandlerStartRealtime = async (req: Request, res: Response) => {
     try {
         const patientId = req.query.patientId as string | undefined;
         if (!io) throw new Error('WebSocket não inicializado');
@@ -65,7 +65,7 @@ export const startRealtime = async (req: Request, res: Response) => {
     }
 };
 
-export const callPatient = async (req: Request, res: Response) => {
+export const HandlerCallPatient = async (req: Request, res: Response) => {
     try {
         const identifier = req.query.identifier as string;
         if (!identifier) throw new Error('sus_number ou cpf é necessário');
@@ -78,7 +78,7 @@ export const callPatient = async (req: Request, res: Response) => {
     }
 };
 
-export const attendPatient = async (req: Request, res: Response) => {
+export const HandlerAttendPatient = async (req: Request, res: Response) => {
     try {
         const { identifier, historyUpdate, prescription, referral } = req.body;
         if (!identifier || !historyUpdate) throw new Error('identifier e historyUpdate são obrigatórios');

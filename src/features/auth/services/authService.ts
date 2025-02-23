@@ -1,5 +1,6 @@
 import { supabase } from '../../../config/supabase';
 import { Patient } from '../models/patient';
+import { Professional } from '../models/professional';
 
 export const registerPatient = async (patientData: Patient) => {
     const { sus_number, rg, cpf, nome, data_nasc, endereco, contato } = patientData;
@@ -20,7 +21,21 @@ export const registerPatient = async (patientData: Patient) => {
     return data;
 };
 
-// Login ajustado para suportar sus_number ou cpf
+export const registerProfessional = async (professionalData: Professional) => {
+    const { nome, crm_coren, especializacao, unidade_saude, cargo } = professionalData;
+    if (!nome || !crm_coren || !especializacao || !unidade_saude || !cargo) {
+        throw new Error('Campos obrigatórios: nome, crm_coren, especializacao, unidade_saude, cargo');
+    }
+
+    const { data, error } = await supabase
+        .from('professionals')
+        .insert({ nome, crm_coren, especializacao, unidade_saude, cargo })
+        .select()
+        .single();
+    if (error) throw new Error(error.message);
+    return data;
+};
+
 export const login = async ({ identifier, password }: { identifier: string; password: string }) => {
     const { data: patientBySus, error: susError } = await supabase
         .from('patients')
