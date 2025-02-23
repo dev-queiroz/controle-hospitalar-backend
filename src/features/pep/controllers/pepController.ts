@@ -9,14 +9,13 @@ let io: Server | null = null;
 
 export const initWebSocket = (socketIo: Server) => {
     io = socketIo;
-
     pepService.subscribeToProntuarioChanges(null, (payload) => {
         console.log('Realtime update:', payload);
         io?.emit('prontuarioUpdate', payload);
     });
 };
 
-export const HandlerCreateProntuario = async (req: Request, res: Response) => {
+export const createProntuario = async (req: Request, res: Response) => {
     try {
         const { patient_id, history } = req.body;
 
@@ -41,7 +40,7 @@ export const HandlerCreateProntuario = async (req: Request, res: Response) => {
     }
 };
 
-export const HandlerGetProntuario = async (req: Request, res: Response) => {
+export const getProntuario = async (req: Request, res: Response) => {
     try {
         const { patientId } = req.params;
 
@@ -60,13 +59,17 @@ export const HandlerGetProntuario = async (req: Request, res: Response) => {
     }
 };
 
-export const HandlerListProntuarios = async (req: Request, res: Response) => {
+export const listProntuarios = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const offset = (page - 1) * limit;
 
-        const userRole = req.user?.role;
+        // Verifica se o usuário é um profissional
+        const userRole = req.user?.role; // Agora reconhecido pelo TypeScript
+        if (!userRole) {
+            return handleError(res, 401, 'Usuário não autenticado');
+        }
         if (userRole === 'patient') {
             return handleError(res, 403, 'Apenas profissionais podem listar todos os prontuários');
         }
@@ -90,7 +93,7 @@ export const HandlerListProntuarios = async (req: Request, res: Response) => {
     }
 };
 
-export const HandlerStartRealtime = async (req: Request, res: Response) => {
+export const startRealtime = async (req: Request, res: Response) => {
     try {
         const patientId = req.query.patientId as string | undefined;
 
