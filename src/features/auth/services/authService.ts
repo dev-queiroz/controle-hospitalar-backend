@@ -21,15 +21,14 @@ export const registerPatient = async (patientData: Patient) => {
     return data;
 };
 
-export const registerProfessional = async (professionalData: Professional) => {
-    const { nome, crm_coren, especializacao, unidade_saude, cargo } = professionalData;
-    if (!nome || !crm_coren || !especializacao || !unidade_saude || !cargo) {
-        throw new Error('Campos obrigatórios: nome, crm_coren, especializacao, unidade_saude, cargo');
-    }
+export const registerProfessional = async (profData: Professional) => {
+    const { email, password, nome, crm_coren, especializacao, unidade_saude, cargo } = profData;
+    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    if (authError) throw new Error(authError.message);
 
     const { data, error } = await supabase
         .from('professionals')
-        .insert({ nome, crm_coren, especializacao, unidade_saude, cargo })
+        .insert({ nome, crm_coren, especializacao, unidade_saude, cargo, user_id: authData.user?.id })
         .select()
         .single();
     if (error) throw new Error(error.message);
@@ -45,16 +44,54 @@ export const login = async ({ identifier, password }: { identifier: string; pass
 
     const { data: patientByCpf, error: cpfError } = await supabase
         .from('patients')
-        .select('sus_number')
+        .select('cpf')
         .eq('cpf', identifier)
         .single();
 
-    const sus_number = patientBySus?.sus_number || patientByCpf?.sus_number;
-    if (susError && cpfError || !sus_number) throw new Error('Paciente não encontrado');
+    const cpf = patientBySus?.sus_number || patientByCpf?.cpf;
+    if (susError && cpfError || !cpf) {
+        const { data: profData, error: profError } = await supabase
+            .from('professionals')
+            .select('email')
+            .eq('email', identifier)
+            .single();
+        if (profError || !profData) throw new Error('Usuário não encontrado');
+        identifier = profData.email;
+    } else {
+        identifier = `${cpf}@hospital.local`;
+    }
 
-    const email = `${sus_number}@hospital.local`;
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: identifier, password });
     if (error) throw new Error(error.message);
 
     return { user: data.user, token: data.session?.access_token };
+};
+
+export const registerAdmin = async (adminData: { email: string; password: string; nome: string }) => {
+    const { email, password, nome } = adminData;
+    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    if (authError) throw new Error(authError.message);
+
+    const { error: updateError } = await supabase.auth.updateUser({ data: { role: 'admin' } });
+    if (updateError) throw new Error(updateError.message);
+
+    const { data, error } = await supabase
+        .from('professionals')
+        .insert({ nome, user_id: authData.user?.id, role: 'admin' })
+        .select()
+        .single();
+    if (error) throw new Error(error.message);
+    return data;
+};
+
+export const updateUserRole = async (userId: string, newRole: string, requesterRole: string) => {
+    if (requesterRole !== 'admin') throw new Error('Apenas administradores podem alterar papéis');
+
+    const { error } = await supabase.auth.admin.updateUserById(userId, { role: newRole });
+    if (error) throw new Error(error.message);
+
+    await supabase
+        .from('professionals')
+        .update({ role: newRole })
+        .eq('user_id', userId);
 };

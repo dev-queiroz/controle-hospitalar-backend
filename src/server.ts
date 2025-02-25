@@ -8,6 +8,8 @@ import agendamentoRoutes from './features/agendamento/routes/agendamentoRoutes';
 import prescricaoRoutes from './features/prescricao/routes/prescricaoRoutes';
 import { initWebSocket } from './features/pep/controllers/pepController';
 import { authMiddleware } from './middlewares/authMiddleware';
+import unidadesSaudeRoutes from './features/unidades/routes/unidadeSaudeRoutes';
+import professionalRoutes from './features/profissional/routes/professionalRoutes';
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,6 +24,8 @@ app.use('/api/pep', authMiddleware, pepRoutes);
 app.use('/api/triagem', authMiddleware, triagemRoutes);
 app.use('/api/agendamento', authMiddleware, agendamentoRoutes);
 app.use('/api/prescricao', authMiddleware, prescricaoRoutes);
+app.use('/api/unidades_saude', authMiddleware, unidadesSaudeRoutes);
+app.use('/api/profissionais', authMiddleware, professionalRoutes);
 
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Erro:', err.message);
